@@ -23,6 +23,7 @@ public:
 	bool useHWFlowControl() { return m_useHWFlowControl; };
 
 	std::string getWebroot() { return m_webroot; };
+	std::string getDomoticzServer() { return m_domoticzServer; };
 
 	bool getModuleState(enum IHCServerDefs::Type type, int outputModuleNumber);
 	void setModuleState(enum IHCServerDefs::Type type, int inputModuleNumber, bool state);
@@ -52,6 +53,7 @@ private:
 	std::string m_serialDevice;
 	bool m_useHWFlowControl;
 	std::string m_webroot;
+	std::string m_domoticzServer;
 	std::map<enum IHCServerDefs::Type,std::map<int,bool> > m_moduleStates;
 	std::map<enum IHCServerDefs::Type,std::map<int,std::map<int,std::string> > > m_ioDescriptions;
 	std::map<enum IHCServerDefs::Type,std::map<int,std::map<int,bool> > > m_ioProtected;

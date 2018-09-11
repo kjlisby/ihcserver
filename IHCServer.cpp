@@ -9,7 +9,7 @@
 #include "IHCServerEventWorker.h"
 #include <unistd.h>
 #include <cstdlib>
-#include <cstdio>
+#include "utils/printutil.h"
 
 const std::string IHCServer::version = "0.3.1";
 
@@ -96,6 +96,10 @@ IHCServer::~IHCServer() {
 	pthread_cond_destroy(&m_eventCond);
 }
 
+IHCInterface* IHCServer::getIHCInterface() {
+	return m_ihcinterface;
+}
+
 bool IHCServer::getInputState(int moduleNumber, int inputNumber) {
 	bool ret = false;
 	IHCInput* inp = m_ihcinterface->getInput(moduleNumber,inputNumber);
@@ -156,6 +160,8 @@ void IHCServer::update(Subject* sub, void* obj) {
 		IHCEvent* event = new IHCEvent();
 		event->m_event = IHCServerDefs::OUTPUT_CHANGED;
 		event->m_io = (IHCOutput*)sub;
+		printTimeStamp();
+		printf("OUTPUT %d.%d changed to %s\n",event->m_io->getModuleNumber(),event->m_io->getIONumber(),event->m_io->getState()?"ON":"OFF");
 		if(m_configuration->getIOAlarm(IHCServerDefs::OUTPUTMODULE,event->m_io->getModuleNumber(),event->m_io->getIONumber())) {
 			changeAlarm = true;
 			newAlarmState = event->m_io->getState();
@@ -172,6 +178,8 @@ void IHCServer::update(Subject* sub, void* obj) {
 		IHCEvent* event = new IHCEvent();
 		event->m_event = IHCServerDefs::INPUT_CHANGED;
 		event->m_io = (IHCInput*)sub;
+		printTimeStamp();
+		printf("INPUT %d.%d changed to %s\n",event->m_io->getModuleNumber(),event->m_io->getIONumber(),event->m_io->getState()?"ON":"OFF");
 		if(m_configuration->getIOAlarm(IHCServerDefs::INPUTMODULE,event->m_io->getModuleNumber(),event->m_io->getIONumber())) {
 			changeAlarm = true;
 			newAlarmState = event->m_io->getState();

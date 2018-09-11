@@ -6,6 +6,7 @@
  */
 
 #include "IHCServer.h"
+#include "DomoticzInterface.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -135,6 +136,7 @@ int main(int argc, char* argv[]) {
 		daemonize( "/var/lock/" DAEMON_NAME );
 	}
 	IHCServer* m_ihcserver = IHCServer::getInstance();
+	DomoticzInterface* m_domoticzInterface = DomoticzInterface::getInstance();
 	while(m_ihcserver->isRunning()) {
 		sleep(100);
 	}

@@ -34,14 +34,6 @@
 
 static unsigned int packets = 0;
 
-void printTimeStamp(time_t t = 0) {
-        time_t now = (t == 0 ? time(NULL) : t);
-        struct tm* timeinfo;
-        timeinfo = localtime(&now);
-        printf("%.2i:%.2i:%.2i ",timeinfo->tm_hour,timeinfo->tm_min,timeinfo->tm_sec);
-        return;
-};
-
 IHCInterface::IHCInterface(std::string rs485port)
 {
 	try {
@@ -106,15 +98,6 @@ void IHCInterface::updateInputStates(const std::vector<unsigned char>& newStates
 		unsigned int ioModuleState = newStates[(k*2)] + (newStates[(k*2)+1] << 8);
 		for(unsigned int j = 0; j < 16; ++j) {
 			bool state = (((ioModuleState & (1 << j)) > 0) ? true : false);
-			if(m_inputs[k][j]->getState() != state) {
-				if(state) {
-					printTimeStamp();
-					printf("Input %d.%d is ON\n",k+1,j+1);
-				} else {
-					printTimeStamp();
-					printf("Input %d.%d is OFF\n",k+1,j+1);
-				}
-			}
 			m_inputs[k][j]->setState(state);
 		}
 	}
@@ -125,15 +108,6 @@ void IHCInterface::updateOutputStates(const std::vector<unsigned char>& newState
 		unsigned char ioModuleState = newStates[k];
 		for(unsigned int j = 0; j < 8; ++j) {
 			bool state = (((ioModuleState & (1 << j)) > 0) ? true : false);
-			if(m_outputs[k][j]->getState() != state) {
-				if(state) {
-					printTimeStamp();
-					printf("Output %d.%d is ON\n",k+1,j+1);
-				} else {
-					printTimeStamp();
-					printf("Output %d.%d is OFF\n",k+1,j+1);
-				}
-			}
 			m_outputs[k][j]->setState(state);
 		}
 	}

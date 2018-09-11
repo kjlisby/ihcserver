@@ -186,6 +186,7 @@ void IHCHTTPServerWorker::thread() {
 				}
 			}
 		} else if(buffer == "" && m_socket->peek() <= 0) {
+//			printf("empty buffer\n");
 //			break;
 		}
 	} catch (const std::exception& ex) {

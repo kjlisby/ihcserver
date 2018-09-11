@@ -1,11 +1,11 @@
 TOP=.
 IHCLIBS=utils 3rdparty/base64
 LIBS=$(foreach i, $(IHCLIBS), $(TOP)/$(i)/lib$(notdir $(i)).a)
-LDLIBS=-lpthread -lrt -lcrypto -lssl
+LDLIBS=-lpthread -lrt -lcrypto -lssl -lcurl
 EXEC=ihcserver
 SRCS=$(shell ls *.cpp)
 OBJS=$(SRCS:%.cpp=%.o)
-CPPFLAGS+=-g -Wall -W
+CPPFLAGS+=-g -Wall -W -Wno-unused-parameter -Wno-unused-variable
 
 all: $(LIBS) $(OBJS)
 	g++ -o $(EXEC) $(OBJS) $(LIBS) $(LDLIBS)

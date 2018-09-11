@@ -1,0 +1,57 @@
+To integrate IHCServer with Domoticz, do the following:
+
+1. Create all the IHC inputs and outputs that you want in Domoticz:
+	- Create a dummy switch in Domoticz for each IHC input and output you want 
+	  to represent in Domoticz. Do so in Domoticz by:
+	  a. Setup -> Hardware
+	       Name: IHC
+		   Type: Dummy
+		   Push the Add button
+	  b. For each input or output:
+	     Setup -> Hardware
+		   Push the "Create virtual sensors" button in the newly created IHC dummy device
+		   Using the dialog box and maybe later the edit option in the Switches pane, set
+		   up all IHC inputs and outputs to:
+		       Name: As described below
+			   Type: On/Off
+	- Naming is extremely important:
+		- Dummy switches representing IHC inputs must be named IHC_I_<module>_<port>, 
+		  where <module> is the IHC module number and <port> is the input number on the
+		  module.
+		- Dummy switches representing IHC outputs must be named IHC_O_<module>_<port>, 
+		  where <module> is the IHC module number and <port> is the input number on the
+		  module.
+		- So for example input module 7, port 11 and output module 2 port 1 are named:
+		        IHC_I_7_11 and IHC_O_2_1
+
+2. Add IHCServer scripts to Domoticz:
+	- Copy the contents of the directory domoticzscripts from the IHCServer 
+	  source code to the scripts directory in your Domoticz installation.
+	- Change the following text (both times it appears) in IHCRemoteScript.sh from
+	        http://DOMOTICZ-SERVER
+	  to the correct address or name of your Domoticz server, such as
+			http://192.177.1.97:8081
+
+3. Add scripts to each of the Domoticz switches:
+	- In Domoticz, go to the Switches pane. In the following <module> and <port> must
+	  be understood as the module numbers and io port numbers as explained above in the
+	  naming paragraph.
+	  Edit each of the new switches to add actions:
+	  - For IHC inputs, add this in the "On Action" field:
+	           script://IHCRemoteScriptActivateInput <module> <port>
+	    and this in the "Off Action" fiels:
+		       script://IHCRemoteScriptDeactivateInput.sh <module> <port>
+	  - For IHC outputs, add this in the "On Action" field:
+	           script://IHCRemoteScriptActivate.sh <module> <port>
+	    and this in the "Off Action" fiels:
+		       script://IHCRemoteScriptDeactivate.sh <module> <port>
+
+4. Configure IHCServer to send updates to Domoticz:
+	- On the machine, where IHCServer is running: Open /etc/ihcserver.cfg
+	  and change the line 
+			"domoticzServer" : "",
+	  so that it contains the name or address of your DomoticzServer, such as
+	        "domoticzServer" : "192.177.1.99:8080",
+
+5. Restart IHCServer, so that it starts up with the new configuration and so that it
+   can discover all the dummy switches in Domoticz.

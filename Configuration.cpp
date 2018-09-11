@@ -23,7 +23,8 @@ Configuration* Configuration::getInstance() {
 Configuration::Configuration() :
 	m_serialDevice(""),
 	m_useHWFlowControl(false),
-	m_webroot("/var/www")
+	m_webroot("/var/www"),
+	m_domoticzServer("")
 {
 }
 
@@ -80,6 +81,14 @@ void Configuration::load() throw (bool) {
 				printf("Configuration: Using webroot \"%s\"\n",m_webroot.c_str());
 			} catch (std::exception& ex) {
 				printf("Configuration: Error parsing webroot from configfile (%s), defaulting to %s\n",m_webroot.c_str(),ex.what());
+				saveConfiguration = true;
+			}
+			try {
+				json::String domoticzServer = conf["domoticzServer"];
+				m_domoticzServer = domoticzServer.Value();
+				printf("Configuration: Using domoticzServer \"%s\"\n",m_domoticzServer.c_str());
+			} catch (std::exception& ex) {
+				printf("Configuration: Error parsing domoticzServer from configfile (%s), defaulting to %s\n",m_domoticzServer.c_str(),ex.what());
 				saveConfiguration = true;
 			}
 			try {
@@ -194,6 +203,7 @@ void Configuration::save() {
 		conf["serialDevice"] = json::String(m_serialDevice);
 		conf["useHWFlowControl"] = json::Boolean(m_useHWFlowControl);
 		conf["webroot"] = json::String(m_webroot);
+		conf["domoticzServer"] = json::String(m_domoticzServer);
 		json::Array inputModulesConfiguration;
 		json::Array outputModulesConfiguration;
 		std::map<enum IHCServerDefs::Type,std::map<int,bool> >::const_iterator it;

@@ -30,6 +30,8 @@ public:
 	static IHCServer* getInstance();
 	~IHCServer();
 	void thread();
+	
+	IHCInterface* getIHCInterface();
 
 	// The callback that gets connected sockets from the servers
 	void socketConnected(TCPSocket* newSocket, TCPSocketServer* caller);

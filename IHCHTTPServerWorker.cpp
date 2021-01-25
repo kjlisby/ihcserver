@@ -140,8 +140,19 @@ void IHCHTTPServerWorker::thread() {
 					header << "Content-Length: " << ost.str().size() << "\r\n";
 					header << "Content-type: application/json" << "\r\n";
 					header << "Connection: close\r\n\r\n";
-					m_socket->send(header.str());
-					m_socket->send(ost.str());
+//					m_socket->send(header.str());
+//					m_socket->send(ost.str());
+        char buf[50000];
+        int j = 0;
+        for (int i=0; i<header.str().size(); i++) {
+           buf[j++] = header.str()[i];
+        }
+        for (int i=0; i<ost.str().size(); i++) {
+           buf[j++] = ost.str()[i];
+        }
+        buf[j] = 0;
+        m_socket->send(buf);
+
 				} catch (const bool ex) {
 					std::ostringstream header;
 					header << "HTTP/1.1 403 Forbidden\r\n";
@@ -186,6 +197,7 @@ void IHCHTTPServerWorker::thread() {
 				}
 			}
 		} else if(buffer == "" && m_socket->peek() <= 0) {
+//			printf("empty buffer\n");
 //			break;
 		}
 	} catch (const std::exception& ex) {
@@ -311,8 +323,16 @@ void IHCHTTPServerWorker::webSocketEventHandler() {
 			header[0] = 129;
 			header[1] = ost.str().size();
 			try {
-				m_socket->send(header,2);
-				m_socket->send(ost.str());
+//				m_socket->send(header,2);
+//				m_socket->send(ost.str());
+        char buf[256];
+        buf[0] = 129;
+        buf[1] = ost.str().size();
+        for (int i=0; i<ost.str().size(); i++) {
+           buf[i+2] = ost.str()[i];
+        }
+        buf[ost.str().size()+2] = 0;
+        m_socket->send(buf);
 			} catch (bool ex) {
 				throw ex;
 			}
@@ -342,8 +362,17 @@ bool IHCHTTPServerWorker::pingWebSocket() {
 	header[0] = 129;
 	header[1] = ost.str().size();
 	try {
-		m_socket->send(header,2);
-		m_socket->send(ost.str());
+//		m_socket->send(header,2);
+//		m_socket->send(ost.str());
+        char buf[256];
+        buf[0] = 129;
+        buf[1] = ost.str().size();
+        for (int i=0; i<ost.str().size(); i++) {
+           buf[i+2] = ost.str()[i];
+        }
+        buf[ost.str().size()+2] = 0;
+        m_socket->send(buf);
+
 		unsigned int start_ms = ms::get();
 		while(m_socket->poll(1000)) {
 			if(ms::isPast(start_ms + 3000)) {

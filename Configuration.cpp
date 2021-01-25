@@ -23,7 +23,8 @@ Configuration* Configuration::getInstance() {
 Configuration::Configuration() :
 	m_serialDevice(""),
 	m_useHWFlowControl(false),
-	m_webroot("/var/www")
+	m_webroot("/var/www"),
+	m_domoticzServer("")
 {
 }
 
@@ -83,6 +84,14 @@ void Configuration::load() throw (bool) {
 				saveConfiguration = true;
 			}
 			try {
+				json::String domoticzServer = conf["domoticzServer"];
+				m_domoticzServer = domoticzServer.Value();
+				printf("Configuration: Using domoticzServer \"%s\"\n",m_domoticzServer.c_str());
+			} catch (std::exception& ex) {
+				printf("Configuration: Error parsing domoticzServer from configfile (%s), defaulting to %s\n",m_domoticzServer.c_str(),ex.what());
+				saveConfiguration = true;
+			}
+			try {
 				json::Array variables = conf["variables"];
 				json::Array::const_iterator it;
 				for(it = variables.Begin(); it != variables.End(); it++) {
@@ -111,6 +120,8 @@ void Configuration::load() throw (bool) {
 							json::Number ioNumber = json::Number(ioDescription["ioNumber"]);
 							json::String description = json::String(ioDescription["description"]);
 							m_ioDescriptions[IHCServerDefs::INPUTMODULE][moduleNumber.Value()][ioNumber.Value()] = description.Value();
+//std::cout << "Setting m_ioDescriptions INPUT " << moduleNumber.Value() << " " << ioNumber.Value() << " " << description.Value() << std::endl;
+//std::cout << "m_ioDescriptions[...] = " << m_ioDescriptions[IHCServerDefs::INPUTMODULE][moduleNumber.Value()][ioNumber.Value()] << std::endl;
 							json::Boolean isProtected = json::Boolean(ioDescription["protected"]);
 							m_ioProtected[IHCServerDefs::INPUTMODULE][moduleNumber.Value()][ioNumber.Value()] = isProtected.Value();
 							json::Boolean isAlarm = json::Boolean(ioDescription["alarm"]);
@@ -136,6 +147,9 @@ void Configuration::load() throw (bool) {
 							json::Number ioNumber = json::Number(ioDescription["ioNumber"]);
 							json::String description = json::String(ioDescription["description"]);
 							m_ioDescriptions[IHCServerDefs::OUTPUTMODULE][moduleNumber.Value()][ioNumber.Value()] = description.Value();
+//std::cout << "Setting m_ioDescriptions OUTPUT " << moduleNumber.Value() << " " << ioNumber.Value() << " " << description.Value() << std::endl;
+//std::cout << "m_ioDescriptions[...] = " << m_ioDescriptions[IHCServerDefs::OUTPUTMODULE][moduleNumber.Value()][ioNumber.Value()] << std::endl;
+//std::cout << "m_ioDescriptions[OUT,6,3] = " << m_ioDescriptions[IHCServerDefs::OUTPUTMODULE][6][3] << std::endl;
 							json::Boolean isProtected = json::Boolean(ioDescription["protected"]);
 							m_ioProtected[IHCServerDefs::OUTPUTMODULE][moduleNumber.Value()][ioNumber.Value()] = isProtected.Value();
 							json::Boolean isAlarm = json::Boolean(ioDescription["alarm"]);
@@ -194,6 +208,7 @@ void Configuration::save() {
 		conf["serialDevice"] = json::String(m_serialDevice);
 		conf["useHWFlowControl"] = json::Boolean(m_useHWFlowControl);
 		conf["webroot"] = json::String(m_webroot);
+		conf["domoticzServer"] = json::String(m_domoticzServer);
 		json::Array inputModulesConfiguration;
 		json::Array outputModulesConfiguration;
 		std::map<enum IHCServerDefs::Type,std::map<int,bool> >::const_iterator it;
@@ -314,6 +329,36 @@ void Configuration::setIOEntry(enum IHCServerDefs::Type type, int moduleNumber, 
 
 std::string Configuration::getIODescription(enum IHCServerDefs::Type type, int moduleNumber, int ioNumber) {
 	return m_ioDescriptions[type][moduleNumber][ioNumber];
+}
+
+bool Configuration::matchIODescription(std::string description, bool *isOutput, int *module, int *io) {
+  int moduleNumber, ioNumber;
+//std::cout << "TEST description: " << getIODescription(IHCServerDefs::OUTPUT,6,8) << std::endl;
+//std::cout << "m_ioDescriptions[OUT,6,3] = " << m_ioDescriptions[IHCServerDefs::OUTPUTMODULE][6][3] << std::endl;
+  for (moduleNumber=1; moduleNumber<40; moduleNumber++)
+    for (ioNumber=1; ioNumber<=16; ioNumber++) {
+      try {
+//        std::cout << description << " OUTPUT " << moduleNumber << " " << ioNumber << " " << m_ioDescriptions[IHCServerDefs::OUTPUTMODULE][moduleNumber][ioNumber] << " comparison: " << description.compare(m_ioDescriptions[IHCServerDefs::OUTPUTMODULE][moduleNumber][ioNumber]) << std::endl;
+//std::cout << description << " INPUT " << moduleNumber << " " << ioNumber << " " << m_ioDescriptions[IHCServerDefs::INPUTMODULE][moduleNumber][ioNumber] << " comparison: " << description.compare(m_ioDescriptions[IHCServerDefs::INPUTMODULE][moduleNumber][ioNumber]) << std::endl;
+        if (description.compare(m_ioDescriptions[IHCServerDefs::INPUTMODULE][moduleNumber][ioNumber])==0) {
+//	  std::cout << "matchIODescription " << description << " INPUT " << moduleNumber << " " << ioNumber << getIODescription(IHCServerDefs::INPUT,moduleNumber,ioNumber) << std::endl;
+          *isOutput = false; 
+          *module   = moduleNumber;
+          *io       = ioNumber;
+          return true;
+        }
+        if (description.compare(m_ioDescriptions[IHCServerDefs::OUTPUTMODULE][moduleNumber][ioNumber])==0) {
+//	  std::cout << "matchIODescription OUTPUT " << moduleNumber << " " << ioNumber << std::endl;
+          *isOutput = true;
+          *module   = moduleNumber;
+          *io       = ioNumber;
+          return true;
+        } 
+      } catch (...) {
+        // ignore any error - we are looking for all sorts of non-existent IO ports
+      }
+    }
+  return false;
 }
 
 void Configuration::setIODescription(enum IHCServerDefs::Type type,
